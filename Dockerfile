@@ -1,0 +1,37 @@
+FROM python:3.14-slim-bookworm AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev --group deploy
+
+
+COPY README.md ./
+COPY src src/
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable --group deploy
+
+FROM python:3.14-slim-bookworm AS runner
+
+ENV PATH="/app/.venv/bin:$PATH" \
+PYTHONDONTWRITEBYTECODE=1 \
+PYTHONUNBUFFERED=1
+
+RUN groupadd -g 2000 app
+RUN useradd app -u 2000 -g 2000 --no-create-home --shell /bin/sh
+
+USER 2000:2000
+
+WORKDIR /app
+
+COPY --from=builder --chown=2000:2000 /app/.venv /app/.venv
+
+EXPOSE 8000
+
+CMD ["python", "-m", "gunicorn", "smallsite.app:site_app", "--bind", "0.0.0.0:8000", "--user", "2000", "--group", "2000"]
