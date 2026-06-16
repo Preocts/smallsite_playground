@@ -15,6 +15,3 @@ def create_app() -> Router:
             config.add_view(func, route_name=name)
 
         return config.make_wsgi_app()
-
-
-site_app = create_app()

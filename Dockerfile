@@ -34,4 +34,4 @@ COPY --from=builder --chown=2000:2000 /app/.venv /app/.venv
 
 EXPOSE 8000
 
-CMD ["python", "-m", "gunicorn", "smallsite.app:site_app", "--bind", "0.0.0.0:8000", "--user", "2000", "--group", "2000"]
+CMD ["python", "-m", "gunicorn", "smallsite.app:create_app()", "--bind", "0.0.0.0:8000", "--user", "2000", "--group", "2000"]
