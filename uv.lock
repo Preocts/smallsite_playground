@@ -106,19 +106,18 @@ name = "smallsite"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "gunicorn" },
     { name = "pyramid" },
 ]
 
-[package.dev-dependencies]
-deploy = [
-    { name = "gunicorn" },
+[package.metadata]
+requires-dist = [
+    { name = "gunicorn", specifier = ">=26.0.0" },
+    { name = "pyramid", specifier = ">=2.1" },
 ]
 
-[package.metadata]
-requires-dist = [{ name = "pyramid", specifier = ">=2.1" }]
-
 [package.metadata.requires-dev]
-deploy = [{ name = "gunicorn", specifier = ">=26.0.0" }]
+deploy = []
 
 [[package]]
 name = "translationstring"
