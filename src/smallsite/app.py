@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from wsgiref.simple_server import make_server
 from pyramid.router import Router
 from pyramid.config import Configurator
 
@@ -18,15 +17,4 @@ def create_app() -> Router:
         return config.make_wsgi_app()
 
 
-def serve_forever() -> None:
-    """Do just that."""
-    app = create_app()
-
-    server = make_server("127.0.0.1", 8000, app)
-
-    try:
-        print("small site runing. CTRL + C to exit")
-        server.serve_forever()
-
-    except KeyboardInterrupt:
-        print()
+site_app = create_app()
