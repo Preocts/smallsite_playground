@@ -1,4 +1,4 @@
-FROM python:3.14-slim-bookworm AS builder
+FROM python:3.14-alpine3.24 AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
 
@@ -17,14 +17,14 @@ COPY README.md ./
 COPY src src/
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable --group deploy
 
-FROM python:3.14-slim-bookworm AS runner
+FROM python:3.14-alpine3.24 AS runner
 
 ENV PATH="/app/.venv/bin:$PATH" \
 PYTHONDONTWRITEBYTECODE=1 \
 PYTHONUNBUFFERED=1
 
-RUN groupadd -g 2000 app
-RUN useradd app -u 2000 -g 2000 --no-create-home --shell /bin/sh
+RUN addgroup --gid 2000 app
+RUN adduser --no-create-home --system --uid 2000 app app
 
 USER 2000:2000
 
