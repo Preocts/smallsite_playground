@@ -11,3 +11,8 @@ requires-python = ">=3.14"
 dependencies = [
     "pyramid>=2.1",
 ]
+
+[dependency-groups]
+deploy = [
+    "gunicorn>=26.0.0",
+]
