@@ -10,12 +10,12 @@ ENV UV_LINK_MODE=copy \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev --group deploy
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev
 
 
 COPY README.md ./
 COPY src src/
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable --group deploy
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable
 
 FROM python:3.14-alpine3.24 AS runner
 
