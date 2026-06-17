@@ -39,4 +39,4 @@ COPY --from=builder --chown=2000:2000 /app/.venv /app/.venv
 
 EXPOSE 8000
 
-CMD ["python", "-m", "smallsite", "prod"]
+CMD ["python", "-m", "smallsite", "docker"]

@@ -9,8 +9,8 @@ description = "Just a small site"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "gunicorn>=26.0.0",
     "pyramid>=2.1",
+    "waitress>=3.0.2",
 ]
 
 [dependency-groups]
