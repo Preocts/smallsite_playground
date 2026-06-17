@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-from pyramid.router import Router
-from pyramid.config import Configurator
+from flask import Flask
 
-from .routes import ROUTES
+from .routes import create_blueprint
 
 
-def create_app() -> Router:
+def create_app() -> Flask:
     """Create the WSGI app, load routes."""
-    with Configurator() as config:
+    app = Flask(__name__)
 
-        for name, route, func in ROUTES:
-            config.add_route(name, route)
-            config.add_view(func, route_name=name)
+    app.register_blueprint(create_blueprint())
 
-        return config.make_wsgi_app()
+    return app
