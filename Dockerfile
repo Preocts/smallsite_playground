@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=python:3.14-alpine3.24
+ARG DOCKER_IMAGE=python:3.13-alpine3.24
 ARG UV_VERSION=0.11.8
 
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv_image
@@ -37,9 +37,11 @@ RUN curl -L ${PATCHELF_URL}${PATCHELF_VERSION}.tar.gz -o ${PATCHELF_VERSION}.tar
 
 RUN uv run nuitka --mode=onefile --onefile-tempdir-spec=/tmp smallsite_app.py
 
+RUN mkdir tmp
+
 FROM scratch AS runner
 
-COPY tmp /tmp/
+COPY --from=builder /app/tmp /tmp/
 COPY --from=builder /app/smallsite_app.bin /
 
 # Fails here. I suspect this is due to the /tmp/jaraco/text/Lorem ipsum.txt having a space in it.
