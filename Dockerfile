@@ -1,6 +1,11 @@
-FROM python:3.14-alpine3.24 AS builder
+ARG DOCKER_IMAGE=python:3.14-alpine3.24
+ARG UV_VERSION=0.11.8
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv_image
+
+FROM ${DOCKER_IMAGE} AS builder
+
+COPY --from=uv_image /uv /uvx /usr/local/bin/
 
 ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
@@ -17,7 +22,7 @@ COPY README.md ./
 COPY src src/
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable
 
-FROM python:3.14-alpine3.24 AS runner
+FROM ${DOCKER_IMAGE} AS runner
 
 ENV PATH="/app/.venv/bin:$PATH" \
 PYTHONDONTWRITEBYTECODE=1 \
