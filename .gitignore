@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+busybox
+smallsite_app.bin

@@ -39,11 +39,9 @@ RUN uv run nuitka --mode=onefile --onefile-tempdir-spec=/tmp smallsite_app.py
 
 RUN mkdir tmp
 
-FROM busybox:latest AS busybox
-
 FROM scratch AS runner
 
-COPY --from=busybox /bin/busybox /busybox
+COPY busybox /busybox
 
 COPY --from=builder /app/tmp /tmp/
 COPY --from=builder /app/smallsite_app.bin /
