@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools==81.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,11 +7,8 @@ name = "smallsite"
 version = "0.1.0"
 description = "Just a small site"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pyramid>=2.1",
     "waitress>=3.0.2",
 ]
-
-[dependency-groups]
-deploy = []
