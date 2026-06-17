@@ -14,29 +14,33 @@ ENV UV_LINK_MODE=copy \
 
 WORKDIR /app
 
+RUN touch README.md
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev --group docker
 
-
-COPY README.md ./
 COPY src src/
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable
+COPY smallsite_app.py ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable --group docker
 
-FROM ${DOCKER_IMAGE} AS runner
+# Download and build patchelf since selected version of alpine only ships iwth 0.18 and nuitka took that version personally.
+ENV PATCHELF_VERSION=0.17.2 \
+    PATCHELF_URL=https://github.com/NixOS/patchelf/archive/
+RUN apk add --no-cache curl autoconf automake build-base
+RUN curl -L ${PATCHELF_URL}${PATCHELF_VERSION}.tar.gz -o ${PATCHELF_VERSION}.tar.gz && \
+    tar -xzf ${PATCHELF_VERSION}.tar.gz && \
+    cd patchelf-${PATCHELF_VERSION} && \
+    ./bootstrap.sh && \
+    ./configure && \
+    make && \
+    make install && \
+    cd ..
 
-ENV PATH="/app/.venv/bin:$PATH" \
-PYTHONDONTWRITEBYTECODE=1 \
-PYTHONUNBUFFERED=1
+RUN uv run nuitka --mode=onefile --onefile-tempdir-spec=/tmp smallsite_app.py
 
-RUN addgroup --gid 2000 app
-RUN adduser --no-create-home --system --uid 2000 app app
+FROM scratch AS runner
 
-USER 2000:2000
+COPY tmp /tmp/
+COPY --from=builder /app/smallsite_app.bin /
 
-WORKDIR /app
-
-COPY --from=builder --chown=2000:2000 /app/.venv /app/.venv
-
-EXPOSE 8000
-
-CMD ["python", "-m", "smallsite", "docker"]
+# Fails here. I suspect this is due to the /tmp/jaraco/text/Lorem ipsum.txt having a space in it.
+CMD ["/smallsite_app.bin", "docker"]
