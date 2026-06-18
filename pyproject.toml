@@ -15,5 +15,5 @@ dependencies = [
 
 [dependency-groups]
 docker = [
-    "nuitka>=4.1.2",
+    "nuitka[onefile]>=4.1.2",
 ]
