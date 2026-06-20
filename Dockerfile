@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=python:3.13-alpine3.24
+ARG DOCKER_IMAGE=python:3.14-alpine3.24
 ARG UV_VERSION=0.11.8
 
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv_image
@@ -7,39 +7,31 @@ FROM ${DOCKER_IMAGE} AS builder
 
 COPY --from=uv_image /uv /uvx /usr/local/bin/
 
-# Download and build patchelf since selected version of alpine only ships iwth 0.18 and nuitka took that version personally.
-ENV PATCHELF_VERSION=0.17.2 \
-    PATCHELF_URL=https://github.com/NixOS/patchelf/archive/
-RUN apk add --no-cache curl autoconf automake build-base
-RUN curl -L ${PATCHELF_URL}${PATCHELF_VERSION}.tar.gz -o ${PATCHELF_VERSION}.tar.gz && \
-    tar -xzf ${PATCHELF_VERSION}.tar.gz && \
-    cd patchelf-${PATCHELF_VERSION} && \
-    ./bootstrap.sh && \
-    ./configure && \
-    make && \
-    make install && \
-    cd ..
-
 ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
 WORKDIR /app
-RUN mkdir tmp
 
 RUN touch README.md
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev --group docker
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-install-project --no-dev
 
 COPY src src/
-COPY smallsite_app.py ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable --group docker
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-editable
 
-# RUN uv run nuitka --mode=onefile --run --debugger smallsite_app.py
-RUN uv run nuitka --mode=onefile smallsite_app.py
+FROM ${DOCKER_IMAGE} AS runner
 
-FROM scratch AS runner
+RUN addgroup --gid 2000 app
+RUN adduser --ingroup app --disabled-password --no-create-home --system --uid 2000 app
 
-COPY --from=builder /app/tmp /tmp/
-COPY --from=builder /app/smallsite_app.bin ./
+USER 2000:2000
+
+WORKDIR /app
+
+COPY --from=builder --chown=2000:2000 /app/.venv .venv
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["python", "-m", "smallsite", "docker"]

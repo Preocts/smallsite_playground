@@ -2,28 +2,30 @@ from __future__ import annotations
 
 import json
 
-from flask import Response
-from flask import Blueprint
+from pyramid.response import Response
+from pyramid.request import Request
 
-OKAY_STATUS = {"status": "ok"}
+_OKAY_STATUS = {"status": "ok"}
 
 
-def create_blueprint() -> Blueprint:
-    """Creates Blueprint for defined routes."""
+def _default_route(request: Request) -> Response:
+    """Base route /"""
+    body = "<html><body><h1>"
+    body += "egg"
+    body += "</h1></body></html>"
+    return Response(body)
 
-    bp = Blueprint("root", __name__, url_prefix="/")
 
-    @bp.route("/", methods=["GET"])
-    def default_route() -> Response:
-        """Base route /"""
-        body = "<html><body><h1>"
-        body += "egg"
-        body += "</h1></body></html>"
-        return Response(body)
+def _health_check(request: Request) -> Response:
+    """Healthcheck route."""
+    return Response(
+        json.dumps(_OKAY_STATUS),
+        content_type="application/JSON",
+        charset="utf-8",
+    )
 
-    @bp.route("/health", methods=["GET"])
-    def health_check() -> Response:
-        """Healthcheck route."""
-        return Response(json.dumps(OKAY_STATUS), content_type="application/JSON")
 
-    return bp
+ROUTES = [
+    ("root", "/", _default_route),
+    ("health", "/health", _health_check),
+]
